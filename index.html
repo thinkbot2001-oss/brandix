@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="si">
+<html lang="si" id="htmlRoot">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -262,6 +262,28 @@
         
         footer { text-align: center; padding: 30px 15px; position: relative; z-index: 10; color: #ffdfa9; font-weight: 500; font-size: 0.85rem; line-height: 1.5; }
         footer span { color: var(--accent-color); font-weight: bold; }
+
+        /* Language Switcher */
+        .lang-switcher { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
+        .lang-btn {
+            background: rgba(255,255,255,0.12);
+            color: #ffdfa9;
+            border: 1.5px solid rgba(255,204,0,0.35);
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            min-height: 36px;
+        }
+        .lang-btn:hover, .lang-btn.active {
+            background: var(--accent-color);
+            color: #1f2937;
+            border-color: var(--accent-color);
+        }
     </style>
 </head>
 <body>
@@ -271,8 +293,13 @@
     </div>
 
     <header>
-        <h1><span class="secret-trigger" id="secretIcon">☸️</span> වෙසක් සුබපැතුම් පත් තරඟය - 2026</h1>
-        <p>ඔබ කැමතිම බෞද්ධ නිර්මාණය සඳහා ඔබේ වටිනා මනාපය (Vote) ලබා දෙන්න</p>
+        <h1><span class="secret-trigger" id="secretIcon">☸️</span> <span id="headerTitle">වෙසක් සුබපැතුම් පත් තරඟය - 2026</span></h1>
+        <p id="headerSubtitle">ඔබ කැමතිම බෞද්ධ නිර්මාණය සඳහා ඔබේ වටිනා මනාපය (Vote) ලබා දෙන්න</p>
+        <div class="lang-switcher">
+            <button class="lang-btn active" id="btnSi" onclick="setLanguage('si')">සිං</button>
+            <button class="lang-btn" id="btnTa" onclick="setLanguage('ta')">தமிழ்</button>
+            <button class="lang-btn" id="btnEn" onclick="setLanguage('en')">EN</button>
+        </div>
     </header>
 
     <main class="grid-container" id="votingGrid">
@@ -291,33 +318,33 @@
             <h2 style="color:var(--primary-color); margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px; font-size:1.4rem;">☸️ Admin Control Panel</h2>
             
             <div style="background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
-                <h4 style="margin:0 0 12px 0; color:var(--secondary-color); font-size:1.05rem;">නව වෙසක් කාඩ්පතක් එක් කිරීම</h4>
+                <h4 id="adminAddTitle" style="margin:0 0 12px 0; color:var(--secondary-color); font-size:1.05rem;">නව වෙසක් කාඩ්පතක් එක් කිරීම</h4>
                 <div class="form-group">
-                    <label>නිර්මාණකරුගේ නම</label>
+                    <label id="labelName">නිර්මාණකරුගේ නම</label>
                     <input type="text" id="artistName" placeholder="උදා: නිමල් පෙරේරා">
                 </div>
                 <div class="form-group">
-                    <label>දෙපාර්තමේන්තුව / අංශය</label>
+                    <label id="labelDept">දෙපාර්තමේන්තුව / අංශය</label>
                     <input type="text" id="artistDept" placeholder="උදා: Manufacturing | Shift B">
                 </div>
                 <div class="form-group">
-                    <label>පින්තූර තෝරන්න (Multiple Files)</label>
+                    <label id="labelImages">පින්තූර තෝරන්න (Multiple Files)</label>
                     <input type="file" id="artistImgFiles" accept="image/*" multiple style="padding:5px;">
                     <div class="upload-status" id="uploadStatus"></div>
                 </div>
                 <button class="btn" id="submitCardBtn" onclick="addNewCard()">කාඩ්පත පද්ධතියට ඇතුළත් කරන්න</button>
             </div>
 
-            <h3 style="color:var(--primary-color); margin-top:25px; font-size:1.2rem;">සජීවී ඡන්ද ගණන් කිරීම</h3>
+            <h3 id="adminVoteTitle" style="color:var(--primary-color); margin-top:25px; font-size:1.2rem;">සජීවී ඡන්ද ගණන් කිරීම</h3>
             <div class="table-responsive">
                 <table class="admin-table">
                     <thead>
-                        <tr><th>නම</th><th>අංශය</th><th>ඡන්දය</th><th>කළමනාකරණය</th></tr>
+                        <tr><th id="thName">නම</th><th id="thDept">අංශය</th><th id="thVotes">ඡන්දය</th><th id="thManage">කළමනාකරණය</th></tr>
                     </thead>
                     <tbody id="adminTableBody"></tbody>
                 </table>
             </div>
-            <button class="btn close-admin" onclick="closeAdminPanel()">පැනලය වසන්න</button>
+            <button id="closeAdminBtn" class="btn close-admin" onclick="closeAdminPanel()">පැනලය වසන්න</button>
         </div>
     </div>
 
@@ -339,6 +366,88 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        const T = {
+            si:{
+                title:'වෙසක් සුබපැතුම් පත් තරඟය - 2026',subtitle:'ඔබ කැමතිම බෞද්ධ නිර්මාණය සඳහා ඔබේ වටිනා මනාපය (Vote) ලබා දෙන්න',
+                loading:'දත්ත පූරණය වෙමින් පවතී...',no_cards:'පද්ධතියේ කිසිදු වෙසක් කාඩ්පතක් නොමැත.',
+                votes:'🌸 ලැබුණු මනාප:',vote_btn:'මනාපය පළ කරන්න (Vote)',voted:'ඔබේ මනාපය ලබා දුන්නා ✓',limit:'සීමාව ඉක්මවා ඇත',
+                confirm_vote:'ඔබේ මනාපය මෙම නිර්මාණය සඳහා ලබා දීමට ස්ථිරද?',vote_ok:'ඔබේ මනාපය සාර්ථකව සටහන් කරගන්නා ලදී. පින්සිදුවේවා!',
+                admin_pw:'Admin Password එක ඇතුලත් කරන්න:',wrong_pw:'Password වැරදියි!',
+                add_title:'නව වෙසක් කාඩ්පතක් එක් කිරීම',lbl_name:'නිර්මාණකරුගේ නම',ph_name:'උදා: නිමල් පෙරේරා',
+                lbl_dept:'දෙපාර්තමේන්තුව / අංශය',ph_dept:'උදා: Manufacturing | Shift B',lbl_img:'පින්තූර තෝරන්න (Multiple Files)',
+                submit:'කාඩ්පත පද්ධතියට ඇතුළත් කරන්න',uploading:'පින්තූර පද්ධතියට එක්වෙමින් පවතී...',
+                vote_title:'සජීවී ඡන්ද ගණන් කිරීම',th_name:'නම',th_dept:'අංශය',th_votes:'ඡන්දය',th_manage:'කළමනාකරණය',
+                close:'පැනලය වසන්න',fill_all:'සියලු විස්තර පුරවා පින්තූර තෝරන්න!',
+                img_big:'පින්තූරය විශාල වැඩියි! 800KB වලට වඩා අඩු පින්තූරයක් දමන්න.',
+                card_added:'වෙසක් කාඩ්පත සාර්ථකව පද්ධතියට එක් කරන ලදී!',
+                del_confirm:'මෙම කාඩ්පත පද්ධතියෙන් මකා දැමීමට අවශ්‍යද?',deleted:'මකා දමන ලදී.'
+            },
+            ta:{
+                title:'வேசாக் வாழ்த்து அட்டை போட்டி - 2026',subtitle:'உங்களுக்கு மிகவும் பிடித்த பௌத்த படைப்புக்கு உங்கள் வாக்கை அளிக்கவும்',
+                loading:'தரவு ஏற்றப்படுகிறது...',no_cards:'கணினியில் எந்த வேசாக் அட்டையும் இல்லை.',
+                votes:'🌸 பெறப்பட்ட வாக்குகள்:',vote_btn:'வாக்களிக்கவும் (Vote)',voted:'உங்கள் வாக்கு அளிக்கப்பட்டது ✓',limit:'வரம்பு மீறப்பட்டது',
+                confirm_vote:'இந்த படைப்புக்கு உங்கள் வாக்கை அளிக்க உறுதியாக உள்ளீர்களா?',vote_ok:'உங்கள் வாக்கு வெற்றிகரமாக பதிவு செய்யப்பட்டது!',
+                admin_pw:'Admin கடவுச்சொல்லை உள்ளிடவும்:',wrong_pw:'கடவுச்சொல் தவறானது!',
+                add_title:'புதிய வேசாக் அட்டை சேர்க்க',lbl_name:'படைப்பாளியின் பெயர்',ph_name:'எ.கா: நிமல் பெரேரா',
+                lbl_dept:'துறை / பிரிவு',ph_dept:'எ.கா: Manufacturing | Shift B',lbl_img:'படங்களை தேர்ந்தெடுக்கவும் (Multiple Files)',
+                submit:'அட்டையை கணினியில் சேர்க்கவும்',uploading:'படங்கள் பதிவேற்றப்படுகின்றன...',
+                vote_title:'நேரடி வாக்கு எண்ணிக்கை',th_name:'பெயர்',th_dept:'துறை',th_votes:'வாக்குகள்',th_manage:'நிர்வாகம்',
+                close:'பலகத்தை மூடவும்',fill_all:'அனைத்து விவரங்களையும் நிரப்பி படங்களை தேர்ந்தெடுக்கவும்!',
+                img_big:'படம் மிகவும் பெரியது! 800KB க்கும் குறைவான படத்தை பயன்படுத்தவும்.',
+                card_added:'வேசாக் அட்டை வெற்றிகரமாக சேர்க்கப்பட்டது!',
+                del_confirm:'இந்த அட்டையை கணினியில் இருந்து நீக்க விரும்புகிறீர்களா?',deleted:'நீக்கப்பட்டது.'
+            },
+            en:{
+                title:'Wesak Greeting Card Competition - 2026',subtitle:'Cast your vote for your favourite Buddhist creation',
+                loading:'Loading data...',no_cards:'No Wesak cards found in the system.',
+                votes:'🌸 Votes Received:',vote_btn:'Cast My Vote',voted:'Your Vote Cast ✓',limit:'Already Voted',
+                confirm_vote:'Are you sure you want to vote for this creation?',vote_ok:'Your vote has been successfully recorded. May you be blessed!',
+                admin_pw:'Enter Admin Password:',wrong_pw:'Incorrect Password!',
+                add_title:'Add New Wesak Card',lbl_name:"Creator's Name",ph_name:'e.g: Nimal Perera',
+                lbl_dept:'Department / Division',ph_dept:'e.g: Manufacturing | Shift B',lbl_img:'Select Images (Multiple Files)',
+                submit:'Add Card to System',uploading:'Uploading images...',
+                vote_title:'Live Vote Count',th_name:'Name',th_dept:'Department',th_votes:'Votes',th_manage:'Action',
+                close:'Close Panel',fill_all:'Please fill all details and select images!',
+                img_big:'Image is too large! Please use an image smaller than 800KB.',
+                card_added:'Wesak card successfully added to the system!',
+                del_confirm:'Are you sure you want to delete this card from the system?',deleted:'Deleted successfully.'
+            }
+        };
+        let currentLang = localStorage.getItem('wesak_lang') || 'si';
+        const t = k => (T[currentLang]||T.si)[k] || k;
+
+        function applyTranslations() {
+            document.getElementById('htmlRoot').lang = currentLang;
+            document.getElementById('headerTitle').textContent = t('title');
+            document.getElementById('headerSubtitle').textContent = t('subtitle');
+            document.getElementById('adminAddTitle').textContent = t('add_title');
+            document.getElementById('labelName').textContent = t('lbl_name');
+            document.getElementById('artistName').placeholder = t('ph_name');
+            document.getElementById('labelDept').textContent = t('lbl_dept');
+            document.getElementById('artistDept').placeholder = t('ph_dept');
+            document.getElementById('labelImages').textContent = t('lbl_img');
+            document.getElementById('submitCardBtn').textContent = t('submit');
+            document.getElementById('adminVoteTitle').textContent = t('vote_title');
+            document.getElementById('thName').textContent = t('th_name');
+            document.getElementById('thDept').textContent = t('th_dept');
+            document.getElementById('thVotes').textContent = t('th_votes');
+            document.getElementById('thManage').textContent = t('th_manage');
+            document.getElementById('closeAdminBtn').textContent = t('close');
+            ['Si','Ta','En'].forEach(l => {
+                const b = document.getElementById('btn'+l);
+                if(b) b.classList.toggle('active', currentLang === l.toLowerCase());
+            });
+            if(typeof _cachedCards !== 'undefined') renderCards(_cachedCards, _cachedVotes);
+        }
+
+        window.setLanguage = (lang) => {
+            currentLang = lang;
+            localStorage.setItem('wesak_lang', lang);
+            applyTranslations();
+        };
+
+        let _cachedCards = {}, _cachedVotes = {};
+
         let userHasVoted = false;
         let selectedTargetCard = null;
         let isAdminAuthenticated = false;
@@ -357,9 +466,9 @@
 
         function triggerAdminAccess() {
             if (!isAdminAuthenticated) {
-                const pw = prompt("Admin Password එක ඇතුලත් කරන්න:");
+                const pw = prompt(t('admin_pw'));
                 if (pw === "Admin@Wesak2026") { isAdminAuthenticated = true; document.getElementById("adminModal").style.display = "flex"; }
-                else { alert("Password වැරදියි!"); }
+                else { alert(t('wrong_pw')); }
             } else { document.getElementById("adminModal").style.display = "flex"; }
         }
 
@@ -403,80 +512,49 @@
             if (savedVote) { userHasVoted = true; selectedTargetCard = savedVote; }
         }
 
+        function renderCards(contestCards, cardVotes) {
+            _cachedCards = contestCards; _cachedVotes = cardVotes;
+            const votingGrid = document.getElementById('votingGrid');
+            const adminTableBody = document.getElementById('adminTableBody');
+            votingGrid.innerHTML = ''; adminTableBody.innerHTML = '';
+            const cardIds = Object.keys(contestCards);
+            if(cardIds.length === 0) {
+                votingGrid.innerHTML = `<p style="text-align:center;grid-column:1/-1;color:#ffcc00;">${t('no_cards')}</p>`;
+                return;
+            }
+            cardIds.forEach(id => {
+                const card = contestCards[id];
+                const totalVotes = cardVotes[id] || 0;
+                const isVoted = (selectedTargetCard === id);
+                const imgs = Array.isArray(card.images) ? card.images : [card.img||''];
+                let sh = `<div class="card-image-slider" id="images-${id}">`;
+                if(imgs.length > 1) sh += `<button class="slide-btn prev-btn" onclick="changeSlide('${id}',-1)">&#10094;</button>`;
+                imgs.forEach((s,i) => { if(s) sh += `<img src="${s}" class="slider-img ${i===0?'active':''}" onclick="openLightbox('${id}')" alt="Wesak Card">`; });
+                if(imgs.length > 1) { sh += `<button class="slide-btn next-btn" onclick="changeSlide('${id}',1)">&#10095;</button><div class="img-indicator"><span class="indicator-txt">1/${imgs.length}</span></div>`; }
+                sh += '</div>';
+                votingGrid.innerHTML += `<div class="wesak-card">${sh}<div class="card-details"><h3>${card.name}</h3><p>${card.dept}</p><div class="live-votes">${t('votes')} ${totalVotes}</div></div><button class="vote-action-btn ${isVoted?'voted-state':''}" ${userHasVoted?'disabled':''} onclick="registerVote('${id}')">${isVoted?t('voted'):(userHasVoted?t('limit'):t('vote_btn'))}</button></div>`;
+                adminTableBody.innerHTML += `<tr><td><b>${card.name}</b></td><td>${card.dept}</td><td style="color:#dc2626;font-weight:bold;">${totalVotes}</td><td><button class="delete-btn" onclick="deleteCard('${id}')">Delete</button></td></tr>`;
+            });
+        }
+
         function listenToLiveDatabase() {
             checkVoterSession();
+            applyTranslations();
             onValue(ref(db), (snapshot) => {
                 const data = snapshot.val() || {};
-                const contestCards = data.contest_cards || {};
-                const cardVotes = data.card_votes || {};
-
-                const votingGrid = document.getElementById("votingGrid");
-                const adminTableBody = document.getElementById("adminTableBody");
-                
-                votingGrid.innerHTML = ""; adminTableBody.innerHTML = "";
-                const cardIds = Object.keys(contestCards);
-
-                if(cardIds.length === 0) {
-                    votingGrid.innerHTML = `<p style="text-align:center; grid-column: 1/-1; color:#ffcc00;">පද්ධතියේ කිසිදු වෙසක් කාඩ්පතක් නොමැත.</p>`;
-                    return;
-                }
-
-                cardIds.forEach(id => {
-                    const card = contestCards[id];
-                    const totalVotes = cardVotes[id] || 0;
-                    const isThisTheVotedCard = (selectedTargetCard === id);
-                    const imageArray = Array.isArray(card.images) ? card.images : [card.img || ''];
-
-                    let sliderHtml = `<div class="card-image-slider" id="images-${id}">`;
-                    if(imageArray.length > 1) {
-                        sliderHtml += `<button class="slide-btn prev-btn" onclick="changeSlide('${id}', -1)">&#10094;</button>`;
-                    }
-                    imageArray.forEach((imgSrc, idx) => {
-                        if(imgSrc) {
-                            sliderHtml += `<img src="${imgSrc}" class="slider-img ${idx === 0 ? 'active' : ''}" onclick="openLightbox('${id}')" alt="Wesak Card">`;
-                        }
-                    });
-                    if(imageArray.length > 1) {
-                        sliderHtml += `<button class="slide-btn next-btn" onclick="changeSlide('${id}', 1)">&#10095;</button>`;
-                        sliderHtml += `<div class="img-indicator"><span class="indicator-txt">1/${imageArray.length}</span></div>`;
-                    }
-                    sliderHtml += `</div>`;
-
-                    const cardBlueprint = `
-                        <div class="wesak-card">
-                            ${sliderHtml}
-                            <div class="card-details">
-                                <h3>${card.name}</h3>
-                                <p>${card.dept}</p>
-                                <div class="live-votes">🌸 ලැබුණු මනාප: ${totalVotes}</div>
-                            </div>
-                            <button class="vote-action-btn ${isThisTheVotedCard ? 'voted-state' : ''}" ${(userHasVoted) ? 'disabled' : ''} onclick="registerVote('${id}')">
-                                ${isThisTheVotedCard ? 'ඔබේ මනාපය ලබා දුන්නා ✓' : (userHasVoted ? 'සීමාව ඉක්මවා ඇත' : 'මනාපය පළ කරන්න (Vote)')}
-                            </button>
-                        </div>
-                    `;
-                    votingGrid.innerHTML += cardBlueprint;
-
-                    adminTableBody.innerHTML += `
-                        <tr>
-                            <td><b>${card.name}</b></td><td>${card.dept}</td>
-                            <td style="color:#dc2626; font-weight:bold;">${totalVotes}</td>
-                            <td><button class="delete-btn" onclick="deleteCard('${id}')">Delete</button></td>
-                        </tr>
-                    `;
-                });
+                renderCards(data.contest_cards || {}, data.card_votes || {});
             });
         }
 
         window.registerVote = async (cardId) => {
             if (userHasVoted) return;
-            if (!confirm("ඔබේ මනාපය මෙම නිර්මාණය සඳහා ලබා දීමට ස්ථිරද?")) return;
+            if (!confirm(t('confirm_vote'))) return;
             try {
                 localStorage.setItem("brandix_wesak_voted_rtdb_v2", cardId);
                 const voteRef = ref(db, `card_votes/${cardId}`);
                 const snapshot = await get(voteRef);
                 await set(voteRef, (snapshot.val() || 0) + 1);
-                alert("ඔබේ මනාපය සාර්ථකව සටහන් කරගන්නා ලදී. පින්සිදුවේවා!");
+                alert(t('vote_ok'));
                 window.location.reload();
             } catch (err) { alert("Error: " + err.message); }
         };
@@ -493,17 +571,17 @@
             const status = document.getElementById("uploadStatus");
             const btn = document.getElementById("submitCardBtn");
 
-            if (!name || !dept || fileInput.files.length === 0) { return alert("සියලු විස්තර පුරවා පින්තූර තෝරන්න!"); }
+            if (!name || !dept || fileInput.files.length === 0) { return alert(t('fill_all')); }
 
             try {
                 btn.disabled = true;
-                status.innerText = `පින්තූර පද්ධතියට එක්වෙමින් පවතී...`;
+                status.innerText = t('uploading');
                 let base64Images = [];
                 for(let i=0; i<fileInput.files.length; i++) {
                     let file = fileInput.files[i];
                     if (file.size > 800000) {
                         btn.disabled = false; status.innerText = "";
-                        return alert(`"${file.name}" පින්තූරය විශාල වැඩියි! 800KB වලට වඩා අඩු පින්තූරයක් දමන්න.`);
+                        return alert(`"${file.name}" — ${t('img_big')}`);
                     }
                     let b64 = await getBase64(file);
                     base64Images.push(b64);
@@ -511,14 +589,14 @@
                 const customId = "card_" + Date.now();
                 await set(ref(db, 'contest_cards/' + customId), { name, dept, images: base64Images });
                 await set(ref(db, 'card_votes/' + customId), 0);
-                alert("වෙසක් කාඩ්පත සාර්ථකව පද්ධතියට එක් කරන ලදී!");
+                alert(t('card_added'));
                 document.getElementById("artistName").value = ""; document.getElementById("artistDept").value = ""; fileInput.value = ""; status.innerText = "";
             } catch (err) { alert("Upload failed: " + err.message); } finally { btn.disabled = false; }
         };
 
         window.deleteCard = async (cardId) => {
-            if (confirm("මෙම කාඩ්පත පද්ධතියෙන් මකා දැමීමට අවශ්‍යද?")) {
-                try { await remove(ref(db, 'contest_cards/' + cardId)); await remove(ref(db, 'card_votes/' + cardId)); alert("මකා දමන ලදී."); } 
+            if (confirm(t('del_confirm'))) {
+                try { await remove(ref(db, 'contest_cards/' + cardId)); await remove(ref(db, 'card_votes/' + cardId)); alert(t('deleted')); } 
                 catch (err) { alert("Delete failed: " + err.message); }
             }
         };
